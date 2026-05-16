@@ -24,6 +24,10 @@ model Company {
   ticker             String?
   exchange           String?  // SSE, SZSE, HKEX, NASDAQ, NYSE
   stockCurrency      String?
+  stockPrice         Float?
+  stockChange        Float?   // % change today
+  marketCap          Float?
+  stockUpdatedAt     DateTime?
   categoryId         Int?
   category           Category? @relation(fields: [categoryId], references: [id])
   tags               String?   // JSON array

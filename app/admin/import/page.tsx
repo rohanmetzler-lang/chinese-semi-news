@@ -102,10 +102,21 @@ export default function ImportPage() {
             <div className="text-sm space-y-2">
               <p className="text-green-400 font-semibold text-base">Import complete</p>
               <p className="text-gray-300">✓ {result.created} companies created</p>
-              <p className="text-gray-500">↷ {result.skipped} rows skipped (duplicates or empty)</p>
+              {result.duplicates > 0 && (
+                <p className="text-yellow-400">⊘ {result.duplicates} duplicates detected and skipped</p>
+              )}
+              {result.skipped > 0 && (
+                <p className="text-gray-500">↷ {result.skipped} rows skipped (empty name)</p>
+              )}
+              {result.duplicateNames?.length > 0 && (
+                <details className="mt-2">
+                  <summary className="text-gray-500 text-xs cursor-pointer hover:text-gray-300">Show duplicate names</summary>
+                  <p className="text-gray-600 text-xs mt-1">{result.duplicateNames.join(", ")}</p>
+                </details>
+              )}
               {result.errors?.length > 0 && (
                 <div>
-                  <p className="text-yellow-400 mt-2">Errors ({result.errors.length}):</p>
+                  <p className="text-red-400 mt-2">Errors ({result.errors.length}):</p>
                   <ul className="text-gray-400 text-xs mt-1 space-y-0.5">
                     {result.errors.slice(0, 10).map((e: string, i: number) => <li key={i}>{e}</li>)}
                   </ul>

@@ -57,8 +57,43 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
           <p className="text-gray-300 leading-relaxed mb-6">{company.description}</p>
         )}
 
+        {/* Stock data */}
+        {company.stockPrice && (
+          <div className="flex items-center gap-6 mb-6 bg-gray-800/50 rounded-xl px-5 py-4">
+            <div>
+              <div className="text-2xl font-bold text-white">
+                {company.stockCurrency === "CNY" ? "¥" : company.stockCurrency === "HKD" ? "HK$" : "$"}
+                {company.stockPrice.toFixed(2)}
+              </div>
+              <div className="text-xs text-gray-500 mt-0.5">{company.exchange}:{company.ticker}</div>
+            </div>
+            {company.stockChange !== null && (
+              <div className={`text-lg font-semibold ${company.stockChange >= 0 ? "text-green-400" : "text-red-400"}`}>
+                {company.stockChange >= 0 ? "+" : ""}{company.stockChange.toFixed(2)}%
+              </div>
+            )}
+            {company.marketCap && (
+              <div className="ml-auto text-right">
+                <div className="text-sm text-white font-medium">
+                  {company.marketCap >= 1e12
+                    ? `${(company.marketCap / 1e12).toFixed(2)}T`
+                    : company.marketCap >= 1e9
+                    ? `${(company.marketCap / 1e9).toFixed(2)}B`
+                    : `${(company.marketCap / 1e6).toFixed(2)}M`}
+                </div>
+                <div className="text-xs text-gray-500">Market Cap</div>
+              </div>
+            )}
+            {company.stockUpdatedAt && (
+              <div className="text-xs text-gray-600 ml-4">
+                Updated {new Date(company.stockUpdatedAt).toLocaleDateString()}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          {company.ticker && (
+          {company.ticker && !company.stockPrice && (
             <div>
               <span className="text-gray-500">Ticker</span>
               <span className="ml-3 font-mono text-green-400 bg-green-950 px-2 py-0.5 rounded">
