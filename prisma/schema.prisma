@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Company {
+  id                 Int      @id @default(autoincrement())
+  nameEn             String
+  nameZhSimplified   String?
+  nameZhTraditional  String?
+  namePinyin         String?
+  nameAliases        String?  // JSON array of alternate names
+  description        String?
+  foundedYear        Int?
+  employeeCount      Int?
+  website            String?
+  address            String?
+  city               String?
+  province           String?
+  ticker             String?
+  exchange           String?  // SSE, SZSE, HKEX, NASDAQ, NYSE
+  stockCurrency      String?
+  categoryId         Int?
+  category           Category? @relation(fields: [categoryId], references: [id])
+  tags               String?   // JSON array
+  isTop100           Boolean  @default(false)
+  top100Rank         Int?
+  dataSource         String?  // "manual", "excel_import", "scraper"
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  newsArticles       NewsArticleCompany[]
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  nameZh      String?
+  description String?
+  companies   Company[]
+}
+
+model NewsArticle {
+  id           Int      @id @default(autoincrement())
+  title        String
+  titleZh      String?
+  summary      String?
+  summaryZh    String?
+  url          String   @unique
+  source       String
+  language     String   @default("en")
+  publishedAt  DateTime?
+  scrapedAt    DateTime @default(now())
+  companies    NewsArticleCompany[]
+}
+
+model NewsArticleCompany {
+  articleId  Int
+  companyId  Int
+  article    NewsArticle @relation(fields: [articleId], references: [id])
+  company    Company     @relation(fields: [companyId], references: [id])
+
+  @@id([articleId, companyId])
+}
+
+model Newsletter {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  period    String
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+  sentAt    DateTime?
+}
