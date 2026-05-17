@@ -101,19 +101,9 @@ export default function ImportPage() {
           ) : (
             <div className="text-sm space-y-2">
               <p className="text-green-400 font-semibold text-base">Import complete</p>
-              <p className="text-gray-300">✓ {result.created} companies created</p>
-              {result.duplicates > 0 && (
-                <p className="text-yellow-400">⊘ {result.duplicates} duplicates detected and skipped</p>
-              )}
-              {result.skipped > 0 && (
-                <p className="text-gray-500">↷ {result.skipped} rows skipped (empty name)</p>
-              )}
-              {result.duplicateNames?.length > 0 && (
-                <details className="mt-2">
-                  <summary className="text-gray-500 text-xs cursor-pointer hover:text-gray-300">Show duplicate names</summary>
-                  <p className="text-gray-600 text-xs mt-1">{result.duplicateNames.join(", ")}</p>
-                </details>
-              )}
+              {result.created > 0 && <p className="text-green-400">+ {result.created} new companies added</p>}
+              {result.updated > 0 && <p className="text-blue-400">↻ {result.updated} existing companies updated</p>}
+              {result.skipped > 0 && <p className="text-gray-500">{result.skipped} rows skipped (empty or duplicate in file)</p>}
               {result.created === 0 && result.detectedColumns?.length > 0 && (
                 <details className="mt-2">
                   <summary className="text-yellow-400 text-xs cursor-pointer hover:text-yellow-300">
