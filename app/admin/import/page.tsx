@@ -114,6 +114,14 @@ export default function ImportPage() {
                   <p className="text-gray-600 text-xs mt-1">{result.duplicateNames.join(", ")}</p>
                 </details>
               )}
+              {result.created === 0 && result.detectedColumns?.length > 0 && (
+                <details className="mt-2">
+                  <summary className="text-yellow-400 text-xs cursor-pointer hover:text-yellow-300">
+                    Nothing imported — see detected columns
+                  </summary>
+                  <p className="text-gray-500 text-xs mt-1">{result.detectedColumns.join(", ")}</p>
+                </details>
+              )}
               {result.errors?.length > 0 && (
                 <div>
                   <p className="text-red-400 mt-2">Errors ({result.errors.length}):</p>

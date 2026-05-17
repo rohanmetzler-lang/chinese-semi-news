@@ -115,7 +115,7 @@ export default function CompaniesPage() {
             ) : companies.map((company, i) => (
               <tr key={company.id} className={`border-b border-gray-800/50 hover:bg-gray-800/50 transition-colors ${i % 2 === 0 ? "" : "bg-gray-900/50"}`}>
                 <td className="px-4 py-3 text-gray-500">
-                  {company.isTop100 ? <span className="text-red-400 font-bold">#{company.top100Rank}</span> : "—"}
+                  {company.isTop100 ? <span className="text-red-400 font-bold">#{company.top100Rank}</span> : null}
                 </td>
                 <td className="px-4 py-3">
                   <Link href={`/companies/${company.id}`} className="text-white hover:text-red-400 font-medium transition-colors">
@@ -124,7 +124,7 @@ export default function CompaniesPage() {
                 </td>
                 <td className="px-4 py-3 text-gray-400">
                   <span title={company.nameZhTraditional ?? ""}>
-                    {company.nameZhSimplified ?? "—"}
+                    {company.nameZhSimplified ?? ""}
                   </span>
                   {company.namePinyin && <span className="text-gray-600 text-xs ml-1">({company.namePinyin})</span>}
                 </td>
@@ -133,10 +133,10 @@ export default function CompaniesPage() {
                     <span className="font-mono text-green-400 text-xs bg-green-950 px-2 py-0.5 rounded">
                       {company.exchange}:{company.ticker}
                     </span>
-                  ) : <span className="text-gray-600">—</span>}
+                  ) : null}
                 </td>
-                <td className="px-4 py-3 text-gray-400">{company.category?.name ?? "—"}</td>
-                <td className="px-4 py-3 text-gray-500">{company.city ?? "—"}</td>
+                <td className="px-4 py-3 text-gray-400">{company.category?.name ?? ""}</td>
+                <td className="px-4 py-3 text-gray-500">{company.city ?? ""}</td>
               </tr>
             ))}
           </tbody>

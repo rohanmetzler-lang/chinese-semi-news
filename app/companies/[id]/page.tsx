@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import LiveStockTicker from "@/app/components/LiveStockTicker"
+
+function ensureUrl(url: string | null): string | null {
+  if (!url) return null
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`
+}
 
 export default async function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -20,6 +26,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
 
   const tags: string[] = company.tags ? JSON.parse(company.tags) : []
   const aliases: string[] = company.nameAliases ? JSON.parse(company.nameAliases) : []
+  const websiteUrl = ensureUrl(company.website)
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
@@ -32,7 +39,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
           <div>
             <h1 className="text-3xl font-bold text-white">{company.nameEn}</h1>
             {company.nameZhSimplified && (
-              <div className="mt-1 flex items-center gap-3">
+              <div className="mt-1 flex items-center gap-3 flex-wrap">
                 <span className="text-xl text-gray-300">{company.nameZhSimplified}</span>
                 {company.nameZhTraditional && company.nameZhTraditional !== company.nameZhSimplified && (
                   <span className="text-gray-500 text-sm">({company.nameZhTraditional})</span>
@@ -47,7 +54,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
             )}
           </div>
           {company.isTop100 && (
-            <span className="bg-red-900/50 border border-red-800 text-red-400 text-sm font-bold px-3 py-1 rounded-full">
+            <span className="bg-red-900/50 border border-red-800 text-red-400 text-sm font-bold px-3 py-1 rounded-full shrink-0">
               Top 100 #{company.top100Rank}
             </span>
           )}
@@ -57,50 +64,21 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
           <p className="text-gray-300 leading-relaxed mb-6">{company.description}</p>
         )}
 
-        {/* Stock data */}
-        {company.stockPrice && (
-          <div className="flex items-center gap-6 mb-6 bg-gray-800/50 rounded-xl px-5 py-4">
-            <div>
-              <div className="text-2xl font-bold text-white">
-                {company.stockCurrency === "CNY" ? "¥" : company.stockCurrency === "HKD" ? "HK$" : "$"}
-                {company.stockPrice.toFixed(2)}
-              </div>
-              <div className="text-xs text-gray-500 mt-0.5">{company.exchange}:{company.ticker}</div>
-            </div>
-            {company.stockChange !== null && (
-              <div className={`text-lg font-semibold ${company.stockChange >= 0 ? "text-green-400" : "text-red-400"}`}>
-                {company.stockChange >= 0 ? "+" : ""}{company.stockChange.toFixed(2)}%
-              </div>
-            )}
-            {company.marketCap && (
-              <div className="ml-auto text-right">
-                <div className="text-sm text-white font-medium">
-                  {company.marketCap >= 1e12
-                    ? `${(company.marketCap / 1e12).toFixed(2)}T`
-                    : company.marketCap >= 1e9
-                    ? `${(company.marketCap / 1e9).toFixed(2)}B`
-                    : `${(company.marketCap / 1e6).toFixed(2)}M`}
-                </div>
-                <div className="text-xs text-gray-500">Market Cap</div>
-              </div>
-            )}
-            {company.stockUpdatedAt && (
-              <div className="text-xs text-gray-600 ml-4">
-                Updated {new Date(company.stockUpdatedAt).toLocaleDateString()}
-              </div>
-            )}
-          </div>
+        {/* Live stock ticker — client component */}
+        {company.ticker && company.exchange && (
+          <LiveStockTicker
+            companyId={company.id}
+            ticker={company.ticker}
+            exchange={company.exchange}
+            initialPrice={company.stockPrice}
+            initialChange={company.stockChange}
+            initialMarketCap={company.marketCap}
+            initialCurrency={company.stockCurrency}
+            initialUpdatedAt={company.stockUpdatedAt?.toISOString() ?? null}
+          />
         )}
 
         <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          {company.ticker && !company.stockPrice && (
-            <div>
-              <span className="text-gray-500">Ticker</span>
-              <span className="ml-3 font-mono text-green-400 bg-green-950 px-2 py-0.5 rounded">
-                {company.exchange}:{company.ticker}
-              </span>
-            </div>
-          )}
           {company.category && (
             <div>
               <span className="text-gray-500">Category</span>
@@ -125,11 +103,16 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
               <span className="ml-3 text-white">{company.employeeCount.toLocaleString()}</span>
             </div>
           )}
-          {company.website && (
+          {websiteUrl && (
             <div>
               <span className="text-gray-500">Website</span>
-              <a href={company.website} target="_blank" rel="noopener noreferrer" className="ml-3 text-red-400 hover:underline">
-                {company.website.replace(/^https?:\/\//, "")}
+              <a
+                href={websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-3 text-red-400 hover:underline"
+              >
+                {websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
               </a>
             </div>
           )}
@@ -152,7 +135,6 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
         )}
       </div>
 
-      {/* Related News */}
       <div>
         <h2 className="text-lg font-semibold text-white mb-4">Related News</h2>
         {company.newsArticles.length === 0 ? (
@@ -169,7 +151,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
               >
                 <div className="text-white text-sm font-medium">{article.title}</div>
                 {article.summary && <p className="text-gray-400 text-xs mt-1 line-clamp-2">{article.summary}</p>}
-                <div className="text-gray-600 text-xs mt-2">{article.source} · {article.publishedAt?.toLocaleDateString() ?? "—"}</div>
+                <div className="text-gray-600 text-xs mt-2">{article.source} · {article.publishedAt?.toLocaleDateString() ?? "unknown date"}</div>
               </a>
             ))}
           </div>
