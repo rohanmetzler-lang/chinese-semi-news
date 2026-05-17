@@ -31,11 +31,36 @@ export async function POST(req: NextRequest) {
 
   const buffer = await file.arrayBuffer()
   const workbook = XLSX.read(buffer, { type: "buffer" })
-  const sheet = workbook.Sheets[workbook.SheetNames[0]]
-  const rows: Record<string, any>[] = XLSX.utils.sheet_to_json(sheet, { defval: "" })
+
+  // Find the best sheet: prefer sheets with name-like columns, pick the one with most rows
+  let rows: Record<string, any>[] = []
+  let usedSheet = workbook.SheetNames[0]
+
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName]
+    const candidate: Record<string, any>[] = XLSX.utils.sheet_to_json(sheet, { defval: "" })
+    if (candidate.length === 0) continue
+    const cols = Object.keys(candidate[0]).map(k => k.toLowerCase())
+    // Prefer sheets that look like company data
+    const looksLikeData =
+      cols.some(c => c.includes("name") || c.includes("company") || c.includes("english") || c.includes("中文")) ||
+      candidate.length > rows.length
+    if (looksLikeData && candidate.length > rows.length) {
+      rows = candidate
+      usedSheet = sheetName
+    }
+  }
+
+  // Fall back to largest sheet if nothing matched
+  if (rows.length === 0) {
+    for (const sheetName of workbook.SheetNames) {
+      const candidate: Record<string, any>[] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" })
+      if (candidate.length > rows.length) { rows = candidate; usedSheet = sheetName }
+    }
+  }
 
   if (rows.length === 0) {
-    return NextResponse.json({ error: "File is empty or could not be parsed", detectedColumns: [] }, { status: 400 })
+    return NextResponse.json({ error: "File is empty or could not be parsed", sheets: workbook.SheetNames }, { status: 400 })
   }
 
   const detectedColumns = Object.keys(rows[0])
@@ -57,6 +82,8 @@ export async function POST(req: NextRequest) {
     skipped: 0,
     errors: [] as string[],
     detectedColumns,
+    usedSheet,
+    totalRows: rows.length,
   }
 
   for (const row of rows) {

@@ -101,6 +101,7 @@ export default function ImportPage() {
           ) : (
             <div className="text-sm space-y-2">
               <p className="text-green-400 font-semibold text-base">Import complete</p>
+              {result.usedSheet && <p className="text-gray-500 text-xs">Sheet: "{result.usedSheet}" · {result.totalRows} rows read</p>}
               {result.created > 0 && <p className="text-green-400">+ {result.created} new companies added</p>}
               {result.updated > 0 && <p className="text-blue-400">↻ {result.updated} existing companies updated</p>}
               {result.skipped > 0 && <p className="text-gray-500">{result.skipped} rows skipped (empty or duplicate in file)</p>}
