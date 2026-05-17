@@ -4,9 +4,10 @@ import { prisma } from "@/lib/prisma"
 export const dynamic = "force-dynamic"
 
 export default async function Home() {
-  const [companyCount, newsCount] = await Promise.all([
+  const [companyCount, newsCount, categoryCount] = await Promise.all([
     prisma.company.count(),
     prisma.newsArticle.count(),
+    prisma.category.count(),
   ])
 
   const recentNews = await prisma.newsArticle.findMany({
@@ -33,7 +34,7 @@ export default async function Home() {
         {[
           { label: "Companies tracked", value: companyCount.toLocaleString() },
           { label: "News articles", value: newsCount.toLocaleString() },
-          { label: "Top 100 ranked", value: "100" },
+          { label: "Industry segments", value: categoryCount.toLocaleString() },
         ].map((stat) => (
           <div key={stat.label} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <div className="text-3xl font-bold text-red-400">{stat.value}</div>
