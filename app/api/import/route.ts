@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
       (nameZh && byZhName.get(nameZh)) ||
       byNormalizedName.get(normalize(nameEn))
 
-    try {
+    const attempt = async () => {
       let categoryId: number | undefined = undefined
       if (categoryName) {
         const cat = await prisma.category.upsert({
@@ -137,35 +137,42 @@ export async function POST(req: NextRequest) {
       }
 
       if (existingId) {
-        // Update existing record — preserve stock data, update everything else
         await prisma.company.update({
           where: { id: existingId },
-          data: {
-            ...data,
-            ...(categoryId !== undefined ? { categoryId } : {}),
-          },
+          data: { ...data, ...(categoryId !== undefined ? { categoryId } : {}) },
         })
         results.updated++
-        // Keep dedup maps current
         byNormalizedName.set(normalize(nameEn), existingId)
         if (nameZh) byZhName.set(nameZh, existingId)
         if (ticker) byTicker.set(ticker, existingId)
       } else {
-        // Create new
         const created = await prisma.company.create({
-          data: {
-            ...data,
-            ...(categoryId !== undefined ? { categoryId } : {}),
-          },
+          data: { ...data, ...(categoryId !== undefined ? { categoryId } : {}) },
         })
         byNormalizedName.set(normalize(nameEn), created.id)
         if (nameZh) byZhName.set(nameZh, created.id)
         if (ticker) byTicker.set(ticker, created.id)
         results.created++
       }
-    } catch (err: any) {
-      results.errors.push(`"${nameEn}": ${err?.message?.slice(0, 80) ?? "Unknown error"}`)
     }
+
+    // Retry up to 3 times on SQLITE_BUSY
+    let lastErr: any
+    for (let i = 0; i < 3; i++) {
+      try {
+        await attempt()
+        lastErr = null
+        break
+      } catch (err: any) {
+        lastErr = err
+        if (err?.message?.includes("SQLITE_BUSY") || err?.message?.includes("database is locked")) {
+          await new Promise(r => setTimeout(r, 100 * (i + 1)))
+        } else {
+          break
+        }
+      }
+    }
+    if (lastErr) results.errors.push(`"${nameEn}": ${lastErr?.message?.slice(0, 80) ?? "Unknown error"}`)
   }
 
   return NextResponse.json(results)
