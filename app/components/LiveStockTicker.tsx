@@ -46,14 +46,14 @@ export default function LiveStockTicker({
   if (!stock && !loading) return null
 
   return (
-    <div className={`flex items-center gap-6 mb-4 rounded-xl px-5 py-4 border ${isUp ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"}`}>
+    <div className={`flex items-center gap-6 mb-4 rounded-xl px-5 py-4 border ${isUp ? "bg-emerald-900/20 border-emerald-800" : "bg-red-900/20 border-red-800"}`}>
       <div>
-        <div className="text-xs text-slate-400 mb-1 font-mono">{exchange}:{ticker}</div>
+        <div className="text-xs text-gray-500 mb-1 font-mono">{exchange}:{ticker}</div>
         {loading ? (
-          <div className="text-slate-400 text-sm animate-pulse">Fetching live price...</div>
+          <div className="text-gray-500 text-sm animate-pulse">Fetching live price...</div>
         ) : stock ? (
           <div className="flex items-baseline gap-3">
-            <span className="text-2xl font-bold text-slate-900">
+            <span className="text-2xl font-bold text-white">
               {currencySymbol}{stock.price.toFixed(2)}
             </span>
             <span className={`text-base font-semibold ${isUp ? "text-emerald-600" : "text-red-600"}`}>
@@ -64,9 +64,9 @@ export default function LiveStockTicker({
       </div>
 
       {stock?.marketCap && (
-        <div className="border-l border-slate-200 pl-6">
-          <div className="text-xs text-slate-400 mb-1">Market Cap</div>
-          <div className="text-sm font-medium text-slate-900">
+        <div className="border-l border-white/15 pl-6">
+          <div className="text-xs text-gray-500 mb-1">Market Cap</div>
+          <div className="text-sm font-medium text-white">
             {stock.marketCap >= 1e12
               ? `${currencySymbol}${(stock.marketCap / 1e12).toFixed(2)}T`
               : stock.marketCap >= 1e9
@@ -77,7 +77,7 @@ export default function LiveStockTicker({
       )}
 
       {updatedAt && (
-        <div className="ml-auto text-xs text-slate-400">
+        <div className="ml-auto text-xs text-gray-500">
           {updatedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </div>
       )}

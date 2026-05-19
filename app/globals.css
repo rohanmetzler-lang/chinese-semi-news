@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 body {
-  background: #ffffff;
-  color: #0f172a;
+  background: #000000;
+  color: #ffffff;
   font-family: 'Times New Roman', Times, serif;
 }
 

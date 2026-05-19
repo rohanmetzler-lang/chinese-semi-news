@@ -10,16 +10,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
-      <body className="min-h-full flex flex-col bg-white text-slate-900">
-        <nav className="border-b border-sky-100 bg-white px-6 py-3 flex items-center gap-8 sticky top-0 z-50 shadow-sm">
-          <Link href="/" className="text-lg font-bold text-sky-500 tracking-tight">
+      <body className="min-h-full flex flex-col bg-black text-white">
+        <nav className="border-b border-white/10 bg-black px-6 py-3 flex items-center gap-8 sticky top-0 z-50">
+          <Link href="/" className="text-lg font-bold text-blue-400 tracking-tight">
             China Semi Intel
           </Link>
-          <Link href="/intelligence" className="text-sm text-slate-500 hover:text-sky-500 transition-colors">Intelligence</Link>
-          <Link href="/companies" className="text-sm text-slate-500 hover:text-sky-500 transition-colors">Companies</Link>
-          <Link href="/news" className="text-sm text-slate-500 hover:text-sky-500 transition-colors">News</Link>
-          <Link href="/newsletter" className="text-sm text-slate-500 hover:text-sky-500 transition-colors">Newsletter</Link>
-          <Link href="/admin" className="ml-auto text-sm text-slate-400 hover:text-sky-400 transition-colors">Admin</Link>
+          <Link href="/intelligence" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">Intelligence</Link>
+          <Link href="/companies" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">Companies</Link>
+          <Link href="/news" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">News</Link>
+          <Link href="/newsletter" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">Newsletter</Link>
+          <Link href="/admin" className="ml-auto text-sm text-gray-600 hover:text-blue-400 transition-colors">Admin</Link>
         </nav>
         <main className="flex-1">{children}</main>
       </body>

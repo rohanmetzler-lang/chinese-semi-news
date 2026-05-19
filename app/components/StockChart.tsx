@@ -118,8 +118,8 @@ export default function StockChart({ companyId, currency }: { companyId: number;
               onClick={() => setRange(r.value)}
               className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors ${
                 range === r.value
-                  ? "bg-sky-400 text-white"
-                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  ? "bg-blue-500 text-white"
+                  : "bg-white/10 text-gray-400 hover:bg-white/15"
               }`}
             >
               {r.label}
@@ -128,15 +128,15 @@ export default function StockChart({ companyId, currency }: { companyId: number;
         </div>
       </div>
 
-      <div className="relative rounded-xl overflow-hidden border border-slate-100">
+      <div className="relative rounded-xl overflow-hidden border border-white/10">
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
-            <span className="text-slate-400 text-sm animate-pulse">Loading chart...</span>
+          <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80 z-10">
+            <span className="text-gray-500 text-sm animate-pulse">Loading chart...</span>
           </div>
         )}
         {error && !loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
-            <span className="text-slate-400 text-sm">Chart data unavailable</span>
+          <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80 z-10">
+            <span className="text-gray-500 text-sm">Chart data unavailable</span>
           </div>
         )}
         <div ref={containerRef} className="w-full" />
