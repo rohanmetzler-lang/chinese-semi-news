@@ -26,38 +26,42 @@ const TIMEFRAME_DAYS: Record<string, number> = {
 
 // General semiconductor + China tech news feeds
 const INDUSTRY_FEEDS: { name: string; url: string; filterKeywords?: boolean }[] = [
-  { name: 'TechNode', url: 'https://technode.com/feed/' },
+  { name: 'EE Times', url: 'https://www.eetimes.com/feed/' },
   { name: 'EE Times Asia', url: 'https://www.eetasia.com/feed/' },
-  { name: 'Semiconductor Today', url: 'https://www.semiconductor-today.com/rss.xml' },
-  { name: 'Reuters Technology', url: 'https://feeds.reuters.com/reuters/technologyNews', filterKeywords: true },
-  { name: 'SCMP Tech', url: 'https://www.scmp.com/rss/5/feed', filterKeywords: true },
-  { name: 'The Register', url: 'https://www.theregister.com/headlines.atom', filterKeywords: true },
-  { name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/technology-lab', filterKeywords: true },
-  { name: 'IEEE Spectrum', url: 'https://spectrum.ieee.org/rss', filterKeywords: true },
+  { name: 'Semiconductor Engineering', url: 'https://semiengineering.com/feed/' },
+  { name: 'Electronics Weekly', url: 'https://www.electronicsweekly.com/feed/' },
+  { name: 'TechNode', url: 'https://technode.com/feed/', filterKeywords: true },
   { name: 'Tom\'s Hardware', url: 'https://www.tomshardware.com/feeds/all', filterKeywords: true },
-  { name: 'AnandTech', url: 'https://www.anandtech.com/rss/', filterKeywords: true },
+  { name: 'IEEE Spectrum', url: 'https://spectrum.ieee.org/feeds/feed.rss', filterKeywords: true },
+  { name: 'The Register', url: 'https://www.theregister.com/headlines.atom', filterKeywords: true },
+  { name: 'SCMP', url: 'https://www.scmp.com/rss/91/feed', filterKeywords: true },
+  { name: 'CNBC Technology', url: 'https://www.cnbc.com/id/19854910/device/rss/rss.html', filterKeywords: true },
+  { name: 'PandaDaily', url: 'https://pandaily.com/feed/', filterKeywords: true },
+  { name: '36Kr', url: 'https://36kr.com/feed', filterKeywords: true },
 ]
 
 // Policy, trade, export control focused feeds
 const POLICY_FEEDS: { name: string; url: string; filterKeywords?: boolean }[] = [
-  { name: 'Reuters', url: 'https://feeds.reuters.com/reuters/topNews', filterKeywords: true },
-  { name: 'Nikkei Asia', url: 'https://asia.nikkei.com/rss/feed/nar', filterKeywords: true },
-  { name: 'SCMP', url: 'https://www.scmp.com/rss/2/feed', filterKeywords: true },
-  { name: 'TechNode', url: 'https://technode.com/feed/' },
-  { name: 'Reuters Technology', url: 'https://feeds.reuters.com/reuters/technologyNews', filterKeywords: true },
+  { name: 'WSJ', url: 'https://feeds.content.dowjones.io/public/rss/RSSWSJD', filterKeywords: true },
+  { name: 'Financial Times', url: 'https://www.ft.com/technology?format=rss', filterKeywords: true },
   { name: 'Bloomberg Technology', url: 'https://feeds.bloomberg.com/technology/news.rss', filterKeywords: true },
-  { name: 'Financial Times', url: 'https://www.ft.com/rss/home', filterKeywords: true },
-  { name: 'Politico', url: 'https://www.politico.com/rss/politicopicks.xml', filterKeywords: true },
+  { name: 'Nikkei Asia', url: 'https://asia.nikkei.com/rss/feed/nar', filterKeywords: true },
+  { name: 'SCMP', url: 'https://www.scmp.com/rss/91/feed', filterKeywords: true },
+  { name: 'TechNode', url: 'https://technode.com/feed/', filterKeywords: true },
+  { name: 'CNBC Technology', url: 'https://www.cnbc.com/id/19854910/device/rss/rss.html', filterKeywords: true },
+  { name: 'ChinaTechNews', url: 'https://www.chinatechnews.com/feed', filterKeywords: true },
 ]
 
 // Investment and M&A focused feeds
 const INVESTMENT_FEEDS: { name: string; url: string; filterKeywords?: boolean }[] = [
+  { name: 'WSJ', url: 'https://feeds.content.dowjones.io/public/rss/RSSWSJD', filterKeywords: true },
   { name: 'TechCrunch', url: 'https://techcrunch.com/feed/', filterKeywords: true },
-  { name: 'Crunchbase News', url: 'https://news.crunchbase.com/feed/', filterKeywords: true },
-  { name: 'Reuters Technology', url: 'https://feeds.reuters.com/reuters/technologyNews', filterKeywords: true },
-  { name: 'TechNode', url: 'https://technode.com/feed/' },
+  { name: 'Bloomberg Technology', url: 'https://feeds.bloomberg.com/technology/news.rss', filterKeywords: true },
+  { name: 'TechNode', url: 'https://technode.com/feed/', filterKeywords: true },
   { name: 'EE Times Asia', url: 'https://www.eetasia.com/feed/' },
   { name: 'Nikkei Asia', url: 'https://asia.nikkei.com/rss/feed/nar', filterKeywords: true },
+  { name: 'VentureBeat', url: 'https://venturebeat.com/feed/', filterKeywords: true },
+  { name: 'PandaDaily', url: 'https://pandaily.com/feed/', filterKeywords: true },
 ]
 
 const SEMI_KEYWORDS = [
