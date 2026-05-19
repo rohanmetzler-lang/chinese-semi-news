@@ -1,82 +1,63 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-function toYahooSymbol(ticker: string, exchange: string): string {
-  const t = ticker.trim().toUpperCase()
+function toTencentSymbol(ticker: string, exchange: string): string | null {
+  const t = ticker.trim()
   const ex = exchange.trim().toUpperCase()
-  if (ex === "SSE" || ex === "SHANGHAI") return `${t}.SS`
-  if (ex === "SZSE" || ex === "SHENZHEN") return `${t}.SZ`
-  if (ex === "HKEX" || ex === "HKG" || ex === "HK") return `${t}.HK`
-  if (/^\d{6}$/.test(t)) return t.startsWith("6") ? `${t}.SS` : `${t}.SZ`
-  if (/^\d{4,5}$/.test(t)) return `${t}.HK`
-  return t
+
+  if (ex === "SSE" || ex === "SHANGHAI") return `sh${t}`
+  if (ex === "SZSE" || ex === "SHENZHEN") return `sz${t}`
+
+  // Infer from ticker format
+  if (/^\d{6}$/.test(t)) {
+    return t.startsWith("6") ? `sh${t}` : `sz${t}`
+  }
+
+  return null  // HK and US not supported
 }
 
-const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-
-// Parse Set-Cookie headers into a single Cookie string
-function parseCookies(raw: string): string {
-  return raw
-    .split(/,(?=[^;]+=[^;]+;|[^;]+=)/)
-    .map(c => c.split(";")[0].trim())
-    .filter(c => c.includes("="))
-    .join("; ")
+function dateStr(n: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() - n)
+  return d.toISOString().split("T")[0]
 }
 
-async function getSessionCookieAndCrumb(): Promise<{ cookie: string; crumb: string } | null> {
+const RANGE_DAYS: Record<string, number> = {
+  "1mo": 30, "3mo": 90, "6mo": 180, "1y": 365, "2y": 730,
+}
+
+async function fetchTencent(symbol: string, range: string): Promise<{ time: number; value: number }[] | null> {
+  const days = RANGE_DAYS[range] ?? 180
+  const startDate = dateStr(days)
+  const endDate = dateStr(0)
+
+  const url = `https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=kline_dayqfq&param=${symbol},day,${startDate},${endDate},${days + 10},qfq`
+
   try {
-    // Step 1: hit Yahoo Finance homepage to get session cookies
-    const homeRes = await fetch("https://finance.yahoo.com", {
-      headers: { "User-Agent": UA, "Accept": "text/html,application/xhtml+xml,*/*;q=0.9", "Accept-Language": "en-US,en;q=0.9" },
-      redirect: "follow",
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" },
       signal: AbortSignal.timeout(8000),
     })
+    if (!res.ok) return null
 
-    const rawCookie = homeRes.headers.get("set-cookie") ?? ""
-    const cookie = parseCookies(rawCookie)
+    const text = await res.text()
+    // Response is JSONP: kline_dayqfq={...}
+    const jsonMatch = text.match(/=(\{.+\})$/)
+    if (!jsonMatch) return null
+    const data = JSON.parse(jsonMatch[1])
 
-    if (!cookie) return null
+    const klines: string[][] = data?.data?.[symbol]?.qfqday ?? data?.data?.[symbol]?.day ?? []
+    if (!klines.length) return null
 
-    // Step 2: get crumb using those cookies
-    const crumbRes = await fetch("https://query1.finance.yahoo.com/v1/test/getcrumb", {
-      headers: { "User-Agent": UA, "Cookie": cookie },
-      signal: AbortSignal.timeout(5000),
-    })
-
-    if (!crumbRes.ok) return null
-    const crumb = (await crumbRes.text()).trim()
-    if (!crumb || crumb.includes("{")) return null  // got JSON error instead
-
-    return { cookie, crumb }
+    return klines.map(row => {
+      // row: [date, open, close, high, low, volume]
+      const time = Math.floor(new Date(row[0]).getTime() / 1000)
+      const close = parseFloat(row[2])
+      return { time, value: close }
+    }).filter(p => !isNaN(p.value) && p.time > 0)
   } catch {
     return null
   }
-}
-
-async function fetchChart(symbol: string, range: string): Promise<any> {
-  const session = await getSessionCookieAndCrumb()
-
-  const endpoints = [
-    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=${range}`,
-    `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=${range}`,
-  ]
-
-  for (const base of endpoints) {
-    const url = session ? `${base}&crumb=${encodeURIComponent(session.crumb)}` : base
-    const headers: Record<string, string> = { "User-Agent": UA }
-    if (session?.cookie) headers["Cookie"] = session.cookie
-
-    try {
-      const res = await fetch(url, { headers, signal: AbortSignal.timeout(8000) })
-      if (!res.ok) continue
-      const data = await res.json()
-      const result = data?.chart?.result?.[0]
-      if (result?.timestamp?.length) return result
-    } catch {
-      continue
-    }
-  }
-  return null
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -85,31 +66,25 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const company = await prisma.company.findUnique({
     where: { id: Number(id) },
-    select: { ticker: true, exchange: true },
+    select: { ticker: true, exchange: true, stockCurrency: true },
   })
   if (!company?.ticker || !company?.exchange) {
     return NextResponse.json({ error: "No ticker" }, { status: 404 })
   }
 
-  const symbol = toYahooSymbol(company.ticker, company.exchange)
-  const result = await fetchChart(symbol, range)
-
-  if (!result) {
-    return NextResponse.json({ error: "No data returned" }, { status: 502 })
+  const symbol = toTencentSymbol(company.ticker, company.exchange)
+  if (!symbol) {
+    return NextResponse.json({ error: "Exchange not supported" }, { status: 404 })
   }
 
-  const timestamps: number[] = result.timestamp ?? []
-  const closes: (number | null)[] = result.indicators?.quote?.[0]?.close ?? []
-  const meta = result.meta ?? {}
-
-  const points = timestamps
-    .map((t, i) => ({ time: t, value: closes[i] }))
-    .filter(p => p.value != null) as { time: number; value: number }[]
+  const points = await fetchTencent(symbol, range)
+  if (!points?.length) {
+    return NextResponse.json({ error: "No price data" }, { status: 404 })
+  }
 
   return NextResponse.json({
-    symbol,
-    currency: meta.currency ?? "CNY",
-    currentPrice: meta.regularMarketPrice,
+    symbol: `${company.exchange}:${company.ticker}`,
+    currency: company.stockCurrency ?? "CNY",
     points,
   })
 }
