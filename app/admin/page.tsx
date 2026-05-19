@@ -58,7 +58,6 @@ export default function AdminPage() {
     if (selectedSegments.length === 0) return
     setScrapingCompanies(true)
     setCompanyScrapeResults([])
-
     for (const segIndex of selectedSegments) {
       setCurrentSegment(SEGMENTS[segIndex])
       try {
@@ -73,15 +72,12 @@ export default function AdminPage() {
         setCompanyScrapeResults(prev => [...prev, { segment: SEGMENTS[segIndex], error: "Failed" }])
       }
     }
-
     setCurrentSegment(null)
     setScrapingCompanies(false)
   }
 
   function toggleSegment(i: number) {
-    setSelectedSegments(prev =>
-      prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
-    )
+    setSelectedSegments(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])
   }
 
   const totalCreated = companyScrapeResults.reduce((s, r) => s + (r.created ?? 0), 0)
@@ -89,17 +85,15 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-bold text-white mb-2">Admin Panel</h1>
-      <p className="text-gray-400 text-sm mb-8">Manage data ingestion and system operations.</p>
+      <h1 className="text-2xl font-bold text-slate-900 mb-1">Admin Panel</h1>
+      <p className="text-slate-400 text-sm mb-8">Manage data ingestion and system operations.</p>
 
       <div className="space-y-6">
-
         {/* Company Scraper */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-1">Company Scraper</h2>
-          <p className="text-gray-400 text-sm mb-4">
+        <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-1">Company Scraper</h2>
+          <p className="text-slate-400 text-sm mb-4">
             Use Claude to auto-generate company profiles with names, addresses, descriptions, and live stock data.
-            Select one or more segments to scrape.
           </p>
           <div className="grid grid-cols-2 gap-2 mb-4">
             {SEGMENTS.map((seg, i) => (
@@ -109,8 +103,8 @@ export default function AdminPage() {
                 disabled={scrapingCompanies}
                 className={`text-left text-xs px-3 py-2 rounded-lg border transition-colors ${
                   selectedSegments.includes(i)
-                    ? "bg-red-950 border-red-700 text-red-300"
-                    : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500"
+                    ? "bg-sky-50 border-sky-300 text-sky-600"
+                    : "bg-white border-slate-200 text-slate-500 hover:border-slate-300"
                 }`}
               >
                 {seg}
@@ -118,43 +112,23 @@ export default function AdminPage() {
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSelectedSegments(SEGMENTS.map((_, i) => i))}
-              disabled={scrapingCompanies}
-              className="text-xs text-gray-400 hover:text-white transition-colors"
-            >
-              Select all
-            </button>
-            <button
-              onClick={() => setSelectedSegments([])}
-              disabled={scrapingCompanies}
-              className="text-xs text-gray-400 hover:text-white transition-colors"
-            >
-              Clear
-            </button>
+            <button onClick={() => setSelectedSegments(SEGMENTS.map((_, i) => i))} disabled={scrapingCompanies} className="text-xs text-slate-400 hover:text-slate-700 transition-colors">Select all</button>
+            <button onClick={() => setSelectedSegments([])} disabled={scrapingCompanies} className="text-xs text-slate-400 hover:text-slate-700 transition-colors">Clear</button>
             <button
               onClick={runCompanyScraper}
               disabled={scrapingCompanies || selectedSegments.length === 0}
-              className="ml-auto bg-red-700 hover:bg-red-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white text-sm px-5 py-2 rounded-lg transition-colors"
+              className="ml-auto bg-sky-400 hover:bg-sky-500 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm px-5 py-2 rounded-lg transition-colors"
             >
-              {scrapingCompanies
-                ? `Scraping: ${currentSegment ?? "..."}`
-                : `Run Scraper (${selectedSegments.length} segment${selectedSegments.length !== 1 ? "s" : ""})`}
+              {scrapingCompanies ? `Scraping: ${currentSegment ?? "..."}` : `Run Scraper (${selectedSegments.length} segment${selectedSegments.length !== 1 ? "s" : ""})`}
             </button>
           </div>
-
           {companyScrapeResults.length > 0 && (
-            <div className="mt-4 space-y-1 text-xs">
-              <p className="text-green-400 font-medium mb-2">
-                Total: {totalCreated} companies added, {totalSkipped} duplicates skipped
-              </p>
+            <div className="mt-4 space-y-1 text-xs border-t border-slate-100 pt-4">
+              <p className="text-emerald-600 font-medium mb-2">Total: {totalCreated} added, {totalSkipped} skipped</p>
               {companyScrapeResults.map((r, i) => (
-                <div key={i} className="text-gray-400 flex justify-between">
+                <div key={i} className="text-slate-500 flex justify-between">
                   <span>{r.segment}</span>
-                  {r.error
-                    ? <span className="text-red-400">{r.error}</span>
-                    : <span>{r.created} added · {r.skipped} skipped · {r.stockUpdated} stocks fetched</span>
-                  }
+                  {r.error ? <span className="text-red-500">{r.error}</span> : <span>{r.created} added · {r.skipped} skipped · {r.stockUpdated} stocks</span>}
                 </div>
               ))}
             </div>
@@ -162,79 +136,49 @@ export default function AdminPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-          {/* Import */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-1">Import Companies</h2>
-            <p className="text-gray-400 text-sm mb-4">
-              Upload Excel/CSV. Duplicates are automatically detected by name and ticker.
-            </p>
+          <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-1">Import Companies</h2>
+            <p className="text-slate-400 text-sm mb-4">Upload Excel/CSV. Duplicates auto-detected by name and ticker.</p>
             <div className="flex flex-col gap-2">
-              <Link href="/admin/import" className="bg-red-700 hover:bg-red-600 text-white text-sm px-4 py-2 rounded-lg text-center transition-colors">
-                Upload Excel / CSV
-              </Link>
-              <Link href="/admin/companies/new" className="bg-gray-800 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded-lg text-center transition-colors">
-                Add Company Manually
-              </Link>
+              <Link href="/admin/import" className="bg-sky-400 hover:bg-sky-500 text-white text-sm px-4 py-2 rounded-lg text-center transition-colors">Upload Excel / CSV</Link>
+              <Link href="/admin/companies/new" className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm px-4 py-2 rounded-lg text-center transition-colors">Add Company Manually</Link>
             </div>
           </div>
 
-          {/* News Scraper */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-1">News Scraper</h2>
-            <p className="text-gray-400 text-sm mb-4">Fetch latest semiconductor news from RSS feeds. Claude summarizes each article.</p>
-            <button
-              onClick={runScraper}
-              disabled={scraping}
-              className="w-full bg-red-700 hover:bg-red-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white text-sm px-4 py-2 rounded-lg transition-colors"
-            >
+          <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-1">News Scraper</h2>
+            <p className="text-slate-400 text-sm mb-4">Fetch latest semiconductor news. Claude summarizes each article.</p>
+            <button onClick={runScraper} disabled={scraping} className="w-full bg-sky-400 hover:bg-sky-500 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm px-4 py-2 rounded-lg transition-colors">
               {scraping ? "Scraping..." : "Run News Scraper"}
             </button>
             {scrapeResult && (
-              <div className="mt-4 text-xs">
-                {scrapeResult.error ? (
-                  <p className="text-red-400">{scrapeResult.error}</p>
-                ) : (
-                  <div className="text-gray-300 space-y-1">
-                    <p className="text-green-400 font-medium">
-                      ✓ {scrapeResult.added} added, {scrapeResult.skipped} skipped{scrapeResult.summarized ? `, ${scrapeResult.summarized} AI-summarized` : ""}
-                    </p>
-                    {scrapeResult.sources?.map((s: string, i: number) => (
-                      <p key={i} className="text-gray-500">{s}</p>
-                    ))}
+              <div className="mt-3 text-xs">
+                {scrapeResult.error ? <p className="text-red-500">{scrapeResult.error}</p> : (
+                  <div className="text-slate-500 space-y-0.5">
+                    <p className="text-emerald-600 font-medium">✓ {scrapeResult.added} added, {scrapeResult.skipped} skipped{scrapeResult.summarized ? `, ${scrapeResult.summarized} AI-summarized` : ""}</p>
+                    {scrapeResult.sources?.map((s: string, i: number) => <p key={i}>{s}</p>)}
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* Newsletter */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-1">Newsletter</h2>
-            <p className="text-gray-400 text-sm mb-4">Generate a bi-weekly digest from recent news.</p>
-            <Link href="/newsletter" className="block bg-gray-800 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded-lg text-center transition-colors">
-              Manage Newsletters
-            </Link>
+          <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-1">Newsletter</h2>
+            <p className="text-slate-400 text-sm mb-4">Generate a bi-weekly digest from recent news.</p>
+            <Link href="/newsletter" className="block bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm px-4 py-2 rounded-lg text-center transition-colors">Manage Newsletters</Link>
           </div>
 
-          {/* AI Categorization */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-1">AI Auto-Categorize</h2>
-            <p className="text-gray-400 text-sm mb-4">Claude assigns categories to uncategorized companies (30 at a time).</p>
-            <button
-              onClick={runCategorize}
-              disabled={categorizing}
-              className="w-full bg-red-700 hover:bg-red-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white text-sm px-4 py-2 rounded-lg transition-colors"
-            >
+          <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-1">AI Auto-Categorize</h2>
+            <p className="text-slate-400 text-sm mb-4">Claude assigns categories to uncategorized companies (30 at a time).</p>
+            <button onClick={runCategorize} disabled={categorizing} className="w-full bg-sky-400 hover:bg-sky-500 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm px-4 py-2 rounded-lg transition-colors">
               {categorizing ? "Categorizing..." : "Auto-Categorize with Claude"}
             </button>
             {categorizeResult && (
               <div className="mt-3 text-xs">
-                {categorizeResult.error ? (
-                  <p className="text-red-400">{categorizeResult.error}</p>
-                ) : (
-                  <p className="text-green-400 font-medium">
-                    {categorizeResult.message ?? `✓ ${categorizeResult.updated} of ${categorizeResult.total} companies categorized`}
-                  </p>
+                {categorizeResult.error ? <p className="text-red-500">{categorizeResult.error}</p> : (
+                  <p className="text-emerald-600 font-medium">{categorizeResult.message ?? `✓ ${categorizeResult.updated} of ${categorizeResult.total} categorized`}</p>
                 )}
               </div>
             )}

@@ -39,40 +39,39 @@ export default function NewsletterPage() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Newsletters</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Newsletters</h1>
         <button
           onClick={generate}
           disabled={generating}
-          className="bg-red-700 hover:bg-red-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white text-sm px-4 py-2 rounded-lg transition-colors"
+          className="bg-sky-400 hover:bg-sky-500 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm px-4 py-2 rounded-lg transition-colors"
         >
           {generating ? "Generating..." : "+ Generate New Issue"}
         </button>
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        {/* List */}
         <div className="space-y-2">
           {loading ? (
-            <p className="text-gray-500 text-sm">Loading...</p>
+            <p className="text-slate-400 text-sm">Loading...</p>
           ) : newsletters.length === 0 ? (
-            <p className="text-gray-500 text-sm">No newsletters yet. Click "Generate New Issue" to create one.</p>
+            <p className="text-slate-400 text-sm">No newsletters yet. Click "Generate New Issue" to create one.</p>
           ) : newsletters.map((nl) => (
             <button
               key={nl.id}
               onClick={() => setSelected(nl)}
-              className={`w-full text-left p-4 rounded-xl border transition-colors ${
+              className={`w-full text-left p-4 rounded-xl border transition-all ${
                 selected?.id === nl.id
-                  ? "bg-red-950 border-red-800"
-                  : "bg-gray-900 border-gray-800 hover:border-gray-600"
+                  ? "bg-sky-50 border-sky-200 shadow-sm"
+                  : "bg-white border-slate-100 shadow-sm hover:border-slate-200"
               }`}
             >
-              <div className="text-white text-sm font-medium line-clamp-2">{nl.title}</div>
+              <div className="text-slate-900 text-sm font-medium line-clamp-2">{nl.title}</div>
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-gray-500 text-xs">{nl.period}</span>
+                <span className="text-slate-400 text-xs">{nl.period}</span>
                 <span className={`text-xs px-1.5 py-0.5 rounded ${
                   nl.status === "sent"
-                    ? "bg-green-950 text-green-400"
-                    : "bg-yellow-950 text-yellow-400"
+                    ? "bg-emerald-50 text-emerald-600"
+                    : "bg-amber-50 text-amber-600"
                 }`}>
                   {nl.status}
                 </span>
@@ -81,29 +80,26 @@ export default function NewsletterPage() {
           ))}
         </div>
 
-        {/* Preview */}
         <div className="col-span-2">
           {selected ? (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+            <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white">{selected.title}</h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => navigator.clipboard.writeText(selected.content)}
-                    className="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    Copy Markdown
-                  </button>
-                </div>
+                <h2 className="text-lg font-semibold text-slate-900">{selected.title}</h2>
+                <button
+                  onClick={() => navigator.clipboard.writeText(selected.content)}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  Copy Markdown
+                </button>
               </div>
-              <div className="prose prose-invert prose-sm max-w-none">
-                <pre className="whitespace-pre-wrap text-gray-300 text-sm font-sans leading-relaxed">
+              <div className="prose prose-slate prose-sm max-w-none">
+                <pre className="whitespace-pre-wrap text-slate-600 text-sm font-sans leading-relaxed">
                   {selected.content}
                 </pre>
               </div>
             </div>
           ) : (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center text-gray-500">
+            <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-12 text-center text-slate-400">
               <p>Select a newsletter to preview it here.</p>
             </div>
           )}
