@@ -243,7 +243,7 @@ export default function IntelligencePage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-2xl mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-xl font-bold tracking-tight">China Semiconductor Intelligence</h1>
