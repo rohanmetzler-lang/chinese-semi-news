@@ -20,35 +20,38 @@ export default function StockChart({ companyId, currency }: { companyId: number;
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [change, setChange] = useState<number | null>(null)
+  const [chartReady, setChartReady] = useState(false)
 
+  // Init chart once
   useEffect(() => {
-    let chart: any
+    let cancelled = false
     async function init() {
       if (!containerRef.current) return
       const { createChart, ColorType, LineStyle } = await import("lightweight-charts")
+      if (cancelled || !containerRef.current) return
 
-      chart = createChart(containerRef.current, {
+      const chart = createChart(containerRef.current, {
         layout: {
-          background: { type: ColorType.Solid, color: "#ffffff" },
-          textColor: "#64748b",
-          fontFamily: "system-ui, sans-serif",
+          background: { type: ColorType.Solid, color: "#18181b" },
+          textColor: "#9ca3af",
+          fontFamily: "'Times New Roman', Times, serif",
           fontSize: 11,
         },
         grid: {
-          vertLines: { color: "#f1f5f9", style: LineStyle.Solid },
-          horzLines: { color: "#f1f5f9", style: LineStyle.Solid },
+          vertLines: { color: "rgba(255,255,255,0.05)", style: LineStyle.Solid },
+          horzLines: { color: "rgba(255,255,255,0.05)", style: LineStyle.Solid },
         },
-        rightPriceScale: { borderColor: "#e2e8f0" },
-        timeScale: { borderColor: "#e2e8f0", timeVisible: true, secondsVisible: false },
-        crosshair: { vertLine: { color: "#94a3b8" }, horzLine: { color: "#94a3b8" } },
+        rightPriceScale: { borderColor: "rgba(255,255,255,0.1)" },
+        timeScale: { borderColor: "rgba(255,255,255,0.1)", timeVisible: true, secondsVisible: false },
+        crosshair: { vertLine: { color: "#60a5fa" }, horzLine: { color: "#60a5fa" } },
         width: containerRef.current.clientWidth,
         height: 260,
       })
 
       const series = chart.addAreaSeries({
-        lineColor: "#e11d48",
-        topColor: "rgba(225, 29, 72, 0.15)",
-        bottomColor: "rgba(225, 29, 72, 0.01)",
+        lineColor: "#3b82f6",
+        topColor: "rgba(59,130,246,0.15)",
+        bottomColor: "rgba(59,130,246,0.01)",
         lineWidth: 2,
         priceLineVisible: false,
       })
@@ -57,23 +60,33 @@ export default function StockChart({ companyId, currency }: { companyId: number;
       seriesRef.current = series
 
       const observer = new ResizeObserver(() => {
-        if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth })
+        if (containerRef.current && chartRef.current) {
+          chartRef.current.applyOptions({ width: containerRef.current.clientWidth })
+        }
       })
       observer.observe(containerRef.current)
+
+      setChartReady(true)
     }
     init()
-    return () => { chartRef.current?.remove() }
+    return () => {
+      cancelled = true
+      chartRef.current?.remove()
+      chartRef.current = null
+      seriesRef.current = null
+    }
   }, [])
 
+  // Fetch data whenever chart is ready or range changes
   useEffect(() => {
-    if (!seriesRef.current) return
+    if (!chartReady || !seriesRef.current) return
     setLoading(true)
     setError(false)
 
     fetch(`/api/companies/${companyId}/history?range=${range}`)
-      .then(r => r.ok ? r.json() : null)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(data => {
-        if (!data || !data.points?.length) { setError(true); setLoading(false); return }
+        if (!data?.points?.length) { setError(true); setLoading(false); return }
 
         const sorted = [...data.points].sort((a: Point, b: Point) => a.time - b.time)
         const chartData = sorted.map((p: Point) => ({
@@ -88,25 +101,25 @@ export default function StockChart({ companyId, currency }: { companyId: number;
           const first = sorted[0].value
           const last = sorted[sorted.length - 1].value
           setChange(((last - first) / first) * 100)
+          const isDown = last < first
+          seriesRef.current.applyOptions({
+            lineColor: isDown ? "#ef4444" : "#22c55e",
+            topColor: isDown ? "rgba(239,68,68,0.12)" : "rgba(34,197,94,0.12)",
+            bottomColor: "rgba(0,0,0,0)",
+          })
         }
 
-        const isDown = sorted.length >= 2 && sorted[sorted.length - 1].value < sorted[0].value
-        seriesRef.current.applyOptions({
-          lineColor: isDown ? "#dc2626" : "#16a34a",
-          topColor: isDown ? "rgba(220,38,38,0.12)" : "rgba(22,163,74,0.12)",
-          bottomColor: "rgba(0,0,0,0.0)",
-        })
         setLoading(false)
       })
       .catch(() => { setError(true); setLoading(false) })
-  }, [companyId, range])
+  }, [companyId, range, chartReady])
 
   return (
     <div className="mt-4">
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
+        <div>
           {change !== null && (
-            <span className={`text-sm font-medium ${change >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+            <span className={`text-sm font-medium ${change >= 0 ? "text-emerald-400" : "text-red-400"}`}>
               {change >= 0 ? "+" : ""}{change.toFixed(2)}% in period
             </span>
           )}
@@ -128,15 +141,15 @@ export default function StockChart({ companyId, currency }: { companyId: number;
         </div>
       </div>
 
-      <div className="relative rounded-xl overflow-hidden border border-white/10">
+      <div className="relative rounded-xl overflow-hidden border border-white/10" style={{ minHeight: 260 }}>
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80 z-10">
             <span className="text-gray-500 text-sm animate-pulse">Loading chart...</span>
           </div>
         )}
         {error && !loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80 z-10">
-            <span className="text-gray-500 text-sm">Chart data unavailable</span>
+          <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 z-10">
+            <span className="text-gray-500 text-sm">No chart data available for this ticker</span>
           </div>
         )}
         <div ref={containerRef} className="w-full" />
