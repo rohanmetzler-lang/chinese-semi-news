@@ -95,7 +95,12 @@ export default async function Home() {
         </div>
       </div>
 
-      <div className="mt-8 grid grid-cols-3 gap-4">
+      <div className="mt-8 grid grid-cols-4 gap-4">
+        <Link href="/intelligence" className="bg-white border border-slate-100 shadow-sm hover:border-sky-200 hover:shadow-md rounded-xl p-6 transition-all">
+          <div className="text-sky-500 text-2xl mb-2">⚡</div>
+          <div className="text-slate-900 font-semibold">Intelligence</div>
+          <div className="text-slate-400 text-sm mt-1">Live AI briefings on industry, policy, and investment</div>
+        </Link>
         <Link href="/companies" className="bg-white border border-slate-100 shadow-sm hover:border-sky-200 hover:shadow-md rounded-xl p-6 transition-all">
           <div className="text-sky-500 text-2xl mb-2">🏭</div>
           <div className="text-slate-900 font-semibold">Company Database</div>
