@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import ReactMarkdown from "react-markdown"
 
 type Newsletter = {
   id: number
@@ -92,10 +93,46 @@ export default function NewsletterPage() {
                   Copy Markdown
                 </button>
               </div>
-              <div className="prose prose-slate prose-sm max-w-none">
-                <pre className="whitespace-pre-wrap text-gray-300 text-sm font-sans leading-relaxed">
+              <div className="prose prose-invert prose-sm max-w-none">
+                <ReactMarkdown
+                  components={{
+                    h1: ({ children }) => (
+                      <h1 className="text-center font-bold text-white mt-8 mb-4" style={{ fontSize: "calc(1rem * 1.618)" }}>{children}</h1>
+                    ),
+                    h2: ({ children }) => (
+                      <h2 className="text-center font-bold text-white mt-8 mb-4" style={{ fontSize: "calc(1rem * 1.618)" }}>{children}</h2>
+                    ),
+                    h3: ({ children }) => (
+                      <h3 className="text-center font-bold text-white mt-6 mb-3" style={{ fontSize: "calc(1rem * 1.618)" }}>{children}</h3>
+                    ),
+                    p: ({ children }) => (
+                      <p className="text-gray-300 text-sm leading-relaxed mb-4">{children}</p>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-semibold text-white">{children}</strong>
+                    ),
+                    li: ({ children }) => (
+                      <li className="text-gray-300 text-sm leading-relaxed mb-1">{children}</li>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="list-disc pl-5 mb-4 space-y-1">{children}</ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="list-decimal pl-5 mb-4 space-y-1">{children}</ol>
+                    ),
+                    hr: () => (
+                      <hr className="border-white/10 my-6" />
+                    ),
+                    a: ({ href, children }) => (
+                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{children}</a>
+                    ),
+                    em: ({ children }) => (
+                      <em className="text-gray-400 not-italic">{children}</em>
+                    ),
+                  }}
+                >
                   {selected.content}
-                </pre>
+                </ReactMarkdown>
               </div>
             </div>
           ) : (

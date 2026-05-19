@@ -246,7 +246,7 @@ export default function IntelligencePage() {
       <div className="max-w-7xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-xl font-bold tracking-tight">China Semiconductor Intelligence</h1>
+          <h1 className="text-xl font-bold tracking-tight">Daily Briefing</h1>
           <p className="text-xs text-gray-500 mt-0.5">{today}</p>
         </div>
 

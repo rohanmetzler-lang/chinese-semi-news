@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Link href="/" className="text-lg font-bold text-blue-500 tracking-tight">
             China Semiconductor Intelligence
           </Link>
-          <Link href="/intelligence" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">Intelligence</Link>
+          <Link href="/intelligence" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">Daily Briefing</Link>
           <Link href="/companies" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">Companies</Link>
           <Link href="/news" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">News</Link>
           <Link href="/newsletter" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">Newsletter</Link>

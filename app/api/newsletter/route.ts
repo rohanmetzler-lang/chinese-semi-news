@@ -9,6 +9,12 @@ export async function GET() {
   return NextResponse.json(newsletters)
 }
 
+export async function DELETE(req: NextRequest) {
+  const { id } = await req.json()
+  await prisma.newsletter.delete({ where: { id } })
+  return NextResponse.json({ ok: true })
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json()
 
@@ -38,7 +44,7 @@ export async function POST(req: NextRequest) {
 
   const newsletter = await prisma.newsletter.create({
     data: {
-      title: body.title ?? `China Semiconductor Digest — ${period}`,
+      title: body.title ?? `China Semiconductor Digest: ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`,
       content,
       period,
       status: "draft",
