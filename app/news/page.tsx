@@ -1,130 +1,220 @@
-import { prisma } from "@/lib/prisma"
+'use client'
 
-export const dynamic = "force-dynamic"
+import { useState, useEffect, useCallback, useRef } from 'react'
+import type { CategorizedArticle } from '@/lib/semi-intelligence'
 
-export default async function NewsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string; lang?: string }>
-}) {
-  const { page: pageStr, lang } = await searchParams
-  const page = Number(pageStr ?? 1)
-  const pageSize = 30
+type Timeframe = '1d' | '1w' | '1m' | '3m' | '1y'
+type Phase = 'idle' | 'loading' | 'done' | 'error'
 
-  const where: any = {}
-  if (lang === "zh") where.language = "zh"
-  if (lang === "en") where.language = "en"
+const TIMEFRAME_LABELS: Record<Timeframe, string> = {
+  '1d': '24H',
+  '1w': '7D',
+  '1m': '1M',
+  '3m': '3M',
+  '1y': '1Y',
+}
 
-  const [articles, total] = await Promise.all([
-    prisma.newsArticle.findMany({
-      where,
-      orderBy: { scrapedAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    prisma.newsArticle.count({ where }),
-  ])
+function timeAgo(dateString: string): string {
+  const diff = Date.now() - new Date(dateString).getTime()
+  const mins = Math.floor(diff / 60000)
+  const hours = Math.floor(mins / 60)
+  const days = Math.floor(hours / 24)
+  if (mins < 60) return `${mins}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
 
-  const totalPages = Math.ceil(total / pageSize)
+function Divider() {
+  return <div className="border-t border-white/20" />
+}
 
+function ArticleRow({ article }: { article: CategorizedArticle }) {
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">News Feed</h1>
-          <p className="text-gray-500 text-sm mt-1">{total.toLocaleString()} articles</p>
-        </div>
-        <a
-          href="/admin"
-          className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg transition-colors"
-        >
-          Run Scraper →
-        </a>
+    <div className="py-4">
+      <a
+        href={article.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-sm font-semibold leading-snug hover:underline text-white"
+      >
+        {article.title}
+      </a>
+      <div className="mt-0.5 text-xs text-gray-500 uppercase tracking-wide">
+        {article.source?.name} &middot; {timeAgo(article.publishedAt)}
       </div>
-
-      <div className="flex gap-2 mb-6">
-        {[
-          { label: "All", value: "" },
-          { label: "English", value: "en" },
-          { label: "Chinese", value: "zh" },
-        ].map(({ label, value }) => (
-          <a
-            key={value}
-            href={`/news${value ? `?lang=${value}` : ""}`}
-            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-              (lang ?? "") === value
-                ? "bg-blue-500 text-white"
-                : "bg-zinc-900 border border-white/15 text-gray-300 hover:border-slate-300"
-            }`}
-          >
-            {label}
-          </a>
-        ))}
+      <div className="mt-1.5 text-sm text-gray-400">
+        &rarr; {article.insight}
       </div>
+    </div>
+  )
+}
 
+function ArticleSection({ label, articles, empty }: {
+  label: string
+  articles: CategorizedArticle[]
+  empty: string
+}) {
+  return (
+    <section>
+      <Divider />
+      <div className="flex items-baseline justify-between py-2">
+        <span className="text-xs font-bold uppercase tracking-widest text-white">{label}</span>
+        <span className="text-xs text-gray-500">{articles.length}</span>
+      </div>
+      <Divider />
       {articles.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
-          <p className="text-lg mb-2">No news articles yet.</p>
-          <p className="text-sm">Go to the <a href="/admin" className="text-blue-400 hover:underline">Admin panel</a> and run the scraper.</p>
-        </div>
+        <p className="py-4 text-sm text-gray-500">{empty}</p>
       ) : (
-        <div className="space-y-3">
-          {articles.map((article) => (
-            <a
-              key={article.id}
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block bg-zinc-900 border border-white/10 shadow-sm rounded-xl p-5 hover:border-blue-800 hover:shadow-md transition-all group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-white font-medium group-hover:text-blue-400 transition-colors line-clamp-2">
-                    {article.title}
-                  </h2>
-                  {article.titleZh && (
-                    <p className="text-gray-500 text-sm mt-0.5 line-clamp-1">{article.titleZh}</p>
-                  )}
-                  {article.summary && (
-                    <p className="text-gray-400 text-sm mt-2 line-clamp-2">{article.summary}</p>
-                  )}
-                  <div className="flex items-center gap-3 mt-3">
-                    <span className="text-xs font-medium text-gray-400 bg-white/10 px-2 py-0.5 rounded">
-                      {article.source}
-                    </span>
-                    <span className={`text-xs px-2 py-0.5 rounded ${
-                      article.language === "zh"
-                        ? "bg-blue-900/30 text-blue-400"
-                        : "bg-blue-900/30 text-blue-500"
-                    }`}>
-                      {article.language === "zh" ? "中文" : "EN"}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {article.publishedAt?.toLocaleDateString() ?? article.scrapedAt.toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </a>
+        <div className="divide-y divide-white/10">
+          {articles.map((a) => (
+            <ArticleRow key={a.url} article={a} />
           ))}
         </div>
       )}
+    </section>
+  )
+}
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-8 text-sm text-gray-400">
-          <span>Page {page} of {totalPages}</span>
-          <div className="flex gap-2">
-            {page > 1 && (
-              <a href={`/news?page=${page - 1}${lang ? `&lang=${lang}` : ""}`}
-                className="px-3 py-1 rounded-lg bg-zinc-900 border border-white/15 hover:border-slate-300">← Prev</a>
-            )}
-            {page < totalPages && (
-              <a href={`/news?page=${page + 1}${lang ? `&lang=${lang}` : ""}`}
-                className="px-3 py-1 rounded-lg bg-zinc-900 border border-white/15 hover:border-slate-300">Next →</a>
-            )}
+export default function NewsPage() {
+  const [timeframe, setTimeframe] = useState<Timeframe>('1w')
+  const [phase, setPhase] = useState<Phase>('idle')
+  const [needToKnow, setNeedToKnow] = useState<CategorizedArticle[]>([])
+  const [signals, setSignals] = useState<CategorizedArticle[]>([])
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const hasAutoGenerated = useRef(false)
+
+  const generate = useCallback(async (tf: Timeframe = timeframe) => {
+    setPhase('loading')
+    setError(null)
+    try {
+      const res = await fetch('/api/intelligence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timeframe: tf, mode: 'industry' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed')
+      setNeedToKnow(data.needToKnow ?? [])
+      setSignals(data.strategyAltering ?? [])
+      setLastUpdated(new Date())
+      setPhase('done')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      setPhase('error')
+    }
+  }, [timeframe])
+
+  useEffect(() => {
+    if (hasAutoGenerated.current) return
+    hasAutoGenerated.current = true
+    generate('1w')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleTimeframeChange = (tf: Timeframe) => {
+    setTimeframe(tf)
+    if (phase === 'done' || phase === 'error') generate(tf)
+  }
+
+  const isLoading = phase === 'loading'
+  const statusText = isLoading
+    ? 'Pulling sources and analyzing...'
+    : lastUpdated
+    ? `Updated ${timeAgo(lastUpdated.toISOString())}`
+    : null
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">News</h1>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex gap-1">
+              {(Object.keys(TIMEFRAME_LABELS) as Timeframe[]).map((tf) => (
+                <button
+                  key={tf}
+                  onClick={() => handleTimeframeChange(tf)}
+                  disabled={isLoading}
+                  className={`px-2.5 py-1 text-xs font-mono transition-colors ${
+                    timeframe === tf
+                      ? 'bg-white text-black'
+                      : 'text-gray-500 hover:text-white disabled:opacity-40'
+                  }`}
+                >
+                  {TIMEFRAME_LABELS[tf]}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => generate()}
+              disabled={isLoading}
+              className="text-xs font-bold uppercase tracking-widest border border-white/40 px-3 py-1.5 hover:bg-white hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Generating...' : phase === 'idle' ? 'Generate' : 'Refresh'}
+            </button>
           </div>
         </div>
-      )}
+
+        {statusText && <p className="text-xs text-gray-500 mb-6">{statusText}</p>}
+
+        {phase === 'idle' && (
+          <div className="border border-dashed border-white/10 py-16 text-center">
+            <p className="text-sm text-gray-400">Select a time frame and click Generate</p>
+          </div>
+        )}
+
+        {phase === 'error' && error && (
+          <div className="border border-white/20 p-4 mb-6">
+            <p className="text-xs font-bold uppercase tracking-widest mb-1">Error</p>
+            <p className="text-sm text-gray-400">{error}</p>
+            <button onClick={() => generate()} className="mt-3 text-xs underline hover:no-underline text-gray-300">
+              Try again
+            </button>
+          </div>
+        )}
+
+        {isLoading && phase === 'loading' && needToKnow.length === 0 && (
+          <div className="space-y-8 animate-pulse">
+            {[0, 1].map((i) => (
+              <div key={i}>
+                <div className="h-px bg-white/20 mb-2" />
+                <div className="h-3 w-24 bg-white/10 mb-2" />
+                <div className="h-px bg-white/20 mb-4" />
+                {[0, 1, 2].map((j) => (
+                  <div key={j} className="py-4 border-b border-white/10">
+                    <div className="h-3 bg-white/10 w-3/4 mb-2" />
+                    <div className="h-2 bg-white/5 w-1/4 mb-2" />
+                    <div className="h-2 bg-white/5 w-2/3" />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {phase === 'done' && (
+          <div className="space-y-8">
+            <ArticleSection
+              label="Need to Know"
+              articles={needToKnow}
+              empty="No major events this period."
+            />
+            <ArticleSection
+              label="Signals"
+              articles={signals}
+              empty="No directional signals this period."
+            />
+            <Divider />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
