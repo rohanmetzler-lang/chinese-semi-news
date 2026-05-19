@@ -27,7 +27,7 @@ export default function StockChart({ companyId, currency }: { companyId: number;
     let cancelled = false
     async function init() {
       if (!containerRef.current) return
-      const { createChart, ColorType, LineStyle } = await import("lightweight-charts")
+      const { createChart, ColorType, LineStyle, AreaSeries } = await import("lightweight-charts")
       if (cancelled || !containerRef.current) return
 
       const chart = createChart(containerRef.current, {
@@ -48,7 +48,7 @@ export default function StockChart({ companyId, currency }: { companyId: number;
         height: 260,
       })
 
-      const series = chart.addAreaSeries({
+      const series = chart.addSeries(AreaSeries, {
         lineColor: "#3b82f6",
         topColor: "rgba(59,130,246,0.15)",
         bottomColor: "rgba(59,130,246,0.01)",
